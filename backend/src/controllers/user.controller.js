@@ -39,18 +39,107 @@ export const createUser = async (req, res) => {
     res
       .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({ error: error.message });
-      console.log(error);
   }
 };
-export const updateUser = (req, res) => {
-  res.send("Update User");
+export const updateUser = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid user ID" });
+    }
+    const { firstName, lastName, nickname, email, password, role } = req.body;
+    if (!email || !password || !role) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "All fields are required" });
+    }
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ error: "User not found" });
+    }
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        nickname,
+        email,
+        password: hashedPassword,
+        role,
+      },
+    });
+    res.status(HTTP_STATUS.OK).json(updatedUser);
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+    console.log(error);
+  }
 };
-export const deleteUser = (req, res) => {
-  res.send("Delete User");
+export const deleteUser = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid user ID" });
+    }
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ error: "User not found" });
+    }
+    await prisma.user.delete({ where: { id } });
+    res.status(HTTP_STATUS.OK).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+    console.log(error);
+  }
 };
-export const listUser = (req, res) => {
-  res.send("List Users");
+export const listUser = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany();
+    res.status(HTTP_STATUS.OK).json(users);
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+  }
 };
-export const readUser = (req, res) => {
-  res.send("Read User");
+export const readUser = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid user ID" });
+    }
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ error: "User not found" });
+    }
+    res.status(HTTP_STATUS.OK).json(user);
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+    console.log(error);
+  }
 };

@@ -1,0 +1,3 @@
+- [x] Install cookie-parser dependency
+- [x] Add cookie-parser middleware in backend/index.js
+- [x] Fix auth.middleware.js to use JWT.SECRET and PrismaClient
