@@ -32,4 +32,22 @@ const authenticate = async (req, res, next) => {
       .json({ message: "Not Authorized, no token" });
   }
 };
-export { authenticate };
+const authorizeAdmin = (req, res, next) => {
+  if (req.user && req.user.role === "ADMIN") {
+    next();
+  } else {
+    res
+      .status(HTTP_STATUS.FORBIDDEN)
+      .json({ message: "Forbidden, admin only" });
+  }
+};
+const authorizeTrainer = (req, res, next) => {
+  if (req.user && req.user.role === "TRAINER") {
+    next();
+  } else {
+    res
+      .status(HTTP_STATUS.FORBIDDEN)
+      .json({ message: "Forbidden, trainer only" });
+  }
+};
+export { authenticate, authorizeAdmin, authorizeTrainer };

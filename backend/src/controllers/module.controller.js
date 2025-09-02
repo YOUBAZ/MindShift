@@ -1,0 +1,8 @@
+import { PrismaClient } from "@prisma/client";
+import { HTTP_STATUS } from "../config/constants.conf.js";
+const prisma = new PrismaClient();
+export const createModule = async (req, res) => {};
+export const updateModule = async (req, res) => {};
+export const deleteModule = async (req, res) => {};
+export const listModule = async (req, res) => {};
+export const readModule = async (req, res) => {};

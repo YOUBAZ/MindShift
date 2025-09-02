@@ -10,6 +10,18 @@ export const createUser = async (req, res) => {
       return res
         .status(HTTP_STATUS.BAD_REQUEST)
         .json({ error: "All fields are required" });
+    } else if (role !== "USER" && role !== "ADMIN" && role !== "TRAINER") {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Role must be either USER, ADMIN, or TRAINER" });
+    } else if (password.length < 6) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Password must be at least 6 characters long" });
+    } else if (!email.includes("@")) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid email" });
     }
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -39,12 +51,13 @@ export const createUser = async (req, res) => {
     res
       .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
       .json({ error: error.message });
+    console.log(error);
   }
 };
 export const updateUser = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    const id = req.params.id;
+    if (!id) {
       return res
         .status(HTTP_STATUS.BAD_REQUEST)
         .json({ error: "Invalid user ID" });
@@ -88,8 +101,8 @@ export const updateUser = async (req, res) => {
 };
 export const deleteUser = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    const id = req.params.id;
+    if (!id) {
       return res
         .status(HTTP_STATUS.BAD_REQUEST)
         .json({ error: "Invalid user ID" });
@@ -123,8 +136,8 @@ export const listUser = async (req, res) => {
 };
 export const readUser = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
+    const id = req.params.id;
+    if (!id) {
       return res
         .status(HTTP_STATUS.BAD_REQUEST)
         .json({ error: "Invalid user ID" });
