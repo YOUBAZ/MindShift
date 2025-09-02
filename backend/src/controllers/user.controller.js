@@ -3,8 +3,60 @@ import { HTTP_STATUS } from "../config/constants.conf.js";
 import bcrypt from "bcryptjs";
 import createToken from "../config/createToken.js";
 const prisma = new PrismaClient();
+export const loginUser = async (req, res) => {
+  try {
+    if (!req.body || typeof req.body !== "object") {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid request body" });
+    }
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "All fields are required" });
+    }
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      return res
+        .status(HTTP_STATUS.NOT_FOUND)
+        .json({ error: "User not found" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res
+        .status(HTTP_STATUS.UNAUTHORIZED)
+        .json({ error: "Invalid credentials" });
+    }
+    createToken(res, user.id);
+    res.status(HTTP_STATUS.OK).json({ message: "Login successful", user });
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+    console.log(error);
+  }
+};
+export const logoutUser = (req, res) => {
+  try {
+    res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
+    res.status(HTTP_STATUS.OK).json({ message: "Logout successful" });
+  } catch (error) {
+    res
+      .status(HTTP_STATUS.INTERNAL_SERVER_ERROR)
+      .json({ error: error.message });
+    console.log(error);
+  }
+};
 export const createUser = async (req, res) => {
   try {
+    if (!req.body || typeof req.body !== "object") {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid request body" });
+    }
     const { firstName, lastName, nickname, email, password, role } = req.body;
     if (!email || !password || !role) {
       return res
@@ -56,39 +108,34 @@ export const createUser = async (req, res) => {
 };
 export const updateUser = async (req, res) => {
   try {
-    const id = req.params.id;
-    if (!id) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ error: "Invalid user ID" });
-    }
-    const { firstName, lastName, nickname, email, password, role } = req.body;
-    if (!email || !password || !role) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ error: "All fields are required" });
-    }
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id },
-    });
-    if (!existingUser) {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
         .json({ error: "User not found" });
+    }
+    if (!req.body || typeof req.body !== "object") {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "Invalid request body" });
+    }
+    const { firstName, lastName, nickname, email, password } = req.body;
+    if (!email || !password) {
+      return res
+        .status(HTTP_STATUS.BAD_REQUEST)
+        .json({ error: "All fields are required" });
     }
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const updatedUser = await prisma.user.update({
-      where: { id },
+      where: { id: req.user.id },
       data: {
         firstName,
         lastName,
         nickname,
         email,
         password: hashedPassword,
-        role,
       },
     });
     res.status(HTTP_STATUS.OK).json(updatedUser);
@@ -134,15 +181,9 @@ export const listUser = async (req, res) => {
       .json({ error: error.message });
   }
 };
-export const readUser = async (req, res) => {
+export const readUserProfile = async (req, res) => {
   try {
-    const id = req.params.id;
-    if (!id) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ error: "Invalid user ID" });
-    }
-    const user = await prisma.user.findUnique({ where: { id } });
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) {
       return res
         .status(HTTP_STATUS.NOT_FOUND)
