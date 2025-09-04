@@ -5,4 +5,6 @@ export const createModule = async (req, res) => {};
 export const updateModule = async (req, res) => {};
 export const deleteModule = async (req, res) => {};
 export const listModule = async (req, res) => {};
+export const listModuleForTrainer = async (req, res) => {};
+export const listModuleForUser = async (req, res) => {};
 export const readModule = async (req, res) => {};
