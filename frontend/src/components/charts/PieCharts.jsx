@@ -21,11 +21,13 @@ import { Pie, PieChart, ResponsiveContainer, Sector } from 'recharts';
 // type PieSectorDataItem = React.SVGProps<SVGPathElement> & Partial<SectorProps> & PieSectorData;
 
 const data = [
-  { name: 'Group A', value: 400 },
-  { name: 'Group B', value: 300 },
-  { name: 'Group C', value: 300 },
-  { name: 'Group D', value: 200 },
+  { name: 'Group A', value: 400, fill: '#ff0000' },
+  { name: 'Group B', value: 300, fill: '#808080' },
+  { name: 'Group C', value: 300, fill: '#ff0000' },
+  { name: 'Group D', value: 200, fill: '#808080' },
 ];
+
+const colors = ['#ff0000', '#808080', '#ff0000', '#808080'];
 
 const renderActiveShape = ({
   cx,
@@ -64,6 +66,7 @@ const renderActiveShape = ({
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
+        stroke="none"
       />
       <Sector
         cx={cx}
@@ -73,8 +76,9 @@ const renderActiveShape = ({
         innerRadius={(outerRadius ?? 0) + 6}
         outerRadius={(outerRadius ?? 0) + 10}
         fill={fill}
+        stroke="none"
       />
-      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke="none" fill="none" />
       <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#333">{`PV ${value}`}</text>
       <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
@@ -86,19 +90,27 @@ const renderActiveShape = ({
 
 export default function PieCharts() {
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <PieChart width={400} height={400}>
-        <Pie
-          activeShape={renderActiveShape}
-          data={data}
-          cx="50%"
-          cy="50%"
-          innerRadius={60}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="value"
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div style={{ outline: 'none', border: 'none', boxShadow: 'none' }}>
+      <ResponsiveContainer width={500} height={500} style={{ outline: 'none', border: 'none', boxShadow: 'none' }}>
+        <PieChart
+          width={300}
+          height={300}
+          style={{ outline: 'none', WebkitFocusRingColor: 'transparent', MozFocusRingColor: 'transparent', border: 'none', boxShadow: 'none' }}
+          tabIndex={-1} // prevent focus outline on click
+        >
+          <Pie
+            activeShape={renderActiveShape}
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
+            fill={(entry, index) => colors[index % colors.length]}
+            stroke="none"
+            dataKey="value"
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
